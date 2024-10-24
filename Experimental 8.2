@@ -1,0 +1,124 @@
+import tkinter as tk
+
+root = tk.Tk()
+root.title("🎬 Movie Ticket Booking System 🎟️")
+root.geometry("380x500")
+
+def show_frame(frame):
+    frame.pack(expand=True, fill="both")
+
+def hide_frame(frame):
+    frame.pack_forget()
+
+# Movie Frame
+movie_frame = tk.Frame(root, bg="#87CEEB")  # SkyBlue
+movies = ["Interstellar", "Gladiator", "Inception", "Hacksaw Ridge", "Whiplash", "Dunkirk", "Tenet"]
+selected_movie = tk.StringVar()
+
+for i, movie in enumerate(movies):
+    button = tk.Radiobutton(movie_frame, text=movie, variable=selected_movie, value=movie, font=("Helvetica", 12), bg="#87CEEB")
+    button.grid(row=i, column=0, padx=20, pady=10)
+
+done_button_movie = tk.Button(movie_frame, text="Next", command=lambda: on_done_movie(), font=("Helvetica", 12), bg="#90EE90")  # Light Green
+done_button_movie.grid(row=len(movies), column=0, padx=20, pady=20)
+
+def on_done_movie():
+    hide_frame(movie_frame)
+    show_frame(seat_frame)
+
+# Seat Frame
+seat_frame = tk.Frame(root, bg="#FFDAB9")  # Peachpuff
+seat_frame.grid_rowconfigure(9, weight=1)
+seat_frame.grid_columnconfigure(10, weight=1)
+
+def create_seat_buttons():
+    seat_buttons = []
+    for row in range(8):
+        for col in range(10):
+            button = tk.Button(seat_frame, text=f"{chr(65 + row)}{col + 1}", bg="#FFE4B5", command=lambda r=row, c=col: select_seat(r, c))
+            button.grid(row=row, column=col, padx=5, pady=5)
+            seat_buttons.append(button)
+    return seat_buttons
+
+selected_seats = []
+
+def select_seat(row, col):
+    seat = f"{chr(65 + row)}{col + 1}"
+    if seat in selected_seats:
+        selected_seats.remove(seat)
+        seat_buttons[row * 10 + col].config(bg="#FFE4B5")
+    else:
+        selected_seats.append(seat)
+        seat_buttons[row * 10 + col].config(bg="#90EE90")  # Light Green
+
+# Create seat buttons
+seat_buttons = create_seat_buttons()
+
+done_button_seat = tk.Button(seat_frame, text="Next", command=lambda: on_done_seat(), font=("Helvetica", 12), bg="#90EE90")  # Light Green
+done_button_seat.grid(row=9, column=0, columnspan=10, sticky="nsew", padx=20, pady=10)
+
+def on_done_seat():
+    hide_frame(seat_frame)
+    show_frame(snack_frame)
+
+# Snack Frame
+snacks = {"Popcorn": 150, "Coke": 50, "Nachos": 150, "Fries": 150, "Burger": 200}
+snack_frame = tk.Frame(root, bg="#87CEEB")  # SkyBlue
+snack_frame.grid_rowconfigure(len(snacks) + 2, weight=1)
+
+selected_snacks = []
+total_price = 0  # Initialize total_price globally
+
+def update_price():
+    global total_price
+    total_price = 350  # Movie ticket cost
+    total_price += sum(snacks[snack] for snack in selected_snacks)
+    total_price_label.config(text=f"Total Price: ₹{total_price}")
+
+def on_check(snack):
+    if snack in selected_snacks:
+        selected_snacks.remove(snack)
+    else:
+        selected_snacks.append(snack)
+    update_price()
+
+frame_label = tk.Label(snack_frame, text="Select Snacks", font=("Helvetica", 20, "bold"), bg="#87CEEB", fg="white")
+frame_label.grid(row=0, column=0, columnspan=len(snacks), sticky="nsew")
+
+# Create snack checkboxes
+for i, (snack, price) in enumerate(snacks.items()):
+    checkbox = tk.Checkbutton(snack_frame, text=f"{snack} - ₹{price}", variable=tk.IntVar(), command=lambda s=snack: on_check(s), font=("Helvetica", 12), bg="#87CEEB", fg="white")
+    checkbox.grid(row=i + 1, column=0, padx=20, pady=10)
+
+total_price_label = tk.Label(snack_frame, text="Total Price: ₹0", font=("Helvetica", 14), bg="#87CEEB", fg="white")
+total_price_label.grid(row=len(snacks) + 1, column=0, columnspan=len(snacks), pady=10)
+
+done_button_snack = tk.Button(snack_frame, text="Next", command=lambda: on_done_snack(), font=("Helvetica", 14), bg="#90EE90")  # Light Green
+done_button_snack.grid(row=len(snacks) + 2, column=0, columnspan=len(snacks), sticky="nsew", padx=20, pady=10)
+
+def on_done_snack():
+    hide_frame(snack_frame)
+    show_frame(ticket_frame)
+    generate_ticket()
+
+# Ticket Frame
+ticket_frame = tk.Frame(root, bg="#F08080")  # Light Coral
+ticket_frame.grid_rowconfigure(9, weight=1)
+ticket_frame.grid_columnconfigure(0, weight=1)
+
+def generate_ticket():
+    ticket_label = tk.Label(ticket_frame, text="--- Movie Ticket ---\nMovie: {}\nSeats: {}\nSnacks: {}\nTotal Price: ₹{}".format(
+        selected_movie.get(), ", ".join(selected_seats), ", ".join(selected_snacks), total_price
+    ), font=("Helvetica", 16), bg="#F08080", fg="white")
+    ticket_label.pack()
+
+done_button_ticket = tk.Button(ticket_frame, text="Done", command=lambda: on_done_ticket(), font=("Helvetica", 12), bg="#90EE90")  # Light Green
+done_button_ticket.pack(pady=20)
+
+def on_done_ticket():
+    hide_frame(ticket_frame)
+
+# Initial frame to show
+show_frame(movie_frame)
+
+root.mainloop()
